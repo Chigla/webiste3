@@ -1,0 +1,150 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-heading: 'Pinyon Script', cursive;
+  --font-body: 'Lato', sans-serif;
+  --font-jp: 'Noto Serif JP', serif;
+  --font-kr: 'Noto Serif KR', serif;
+}
+
+/* ── SAKURA THEME ── */
+[data-theme="sakura"] {
+  --bg: #fff5f7;
+  --bg2: #fde8ee;
+  --surface: #fff0f4;
+  --accent: #e8759a;
+  --accent2: #f4a7be;
+  --text: #5c2d3e;
+  --text2: #9b6070;
+  --shadow: rgba(232, 117, 154, 0.25);
+  --petal: #fbbdce;
+  --cork: #c8a97e;
+  --cork-texture: repeating-linear-gradient(
+    45deg, #c8a97e, #c8a97e 2px, #b8956a 2px, #b8956a 4px
+  );
+}
+
+/* ── VELVET THEME ── */
+[data-theme="velvet"] {
+  --bg: #2a0a1f;
+  --bg2: #3d1230;
+  --surface: #1e0717;
+  --accent: #c4507a;
+  --accent2: #e8789a;
+  --text: #f5d6e0;
+  --text2: #c9a0b0;
+  --shadow: rgba(196, 80, 122, 0.4);
+  --petal: #8b2f55;
+  --cork: #6b3a2a;
+  --cork-texture: repeating-linear-gradient(
+    45deg, #6b3a2a, #6b3a2a 2px, #5a2f20 2px, #5a2f20 4px
+  );
+}
+
+/* ── MIDNIGHT THEME ── */
+[data-theme="midnight"] {
+  --bg: #050818;
+  --bg2: #0a1030;
+  --surface: #080d24;
+  --accent: #7b8cde;
+  --accent2: #a8b4f0;
+  --text: #e8eaff;
+  --text2: #9098c8;
+  --shadow: rgba(123, 140, 222, 0.4);
+  --petal: #2a3578;
+  --cork: #0f1b3d;
+  --cork-texture: repeating-linear-gradient(
+    45deg, #0f1b3d, #0f1b3d 2px, #0a1428 2px, #0a1428 4px
+  );
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  transition: background 0.6s ease, color 0.4s ease;
+  overflow-x: hidden;
+}
+
+/* ── GLITTER / GLOW (Midnight only) ── */
+[data-theme="midnight"] .glitter-heading {
+  background: linear-gradient(
+    90deg,
+    #7b8cde 0%, #c4b5fd 20%, #e8eaff 40%, #a8b4f0 60%, #7b8cde 80%, #c4b5fd 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(168, 180, 240, 0.9)) drop-shadow(0 0 24px rgba(123, 140, 222, 0.6));
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+[data-theme="midnight"] .glitter-star {
+  animation: twinkle 2s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.3; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.2); }
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 3px; }
+
+/* ── UTILITY ── */
+.heading { font-family: var(--font-heading); }
+.btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px var(--shadow);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+.btn:active { transform: translateY(0); }
+
+/* ── PETAL ANIMATION ── */
+.petals-wrap {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.petal {
+  position: absolute;
+  top: -40px;
+  border-radius: 50% 0 50% 0;
+  opacity: 0.7;
+  animation: fall linear infinite;
+}
+@keyframes fall {
+  0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0.8; }
+  50%  { transform: translateY(50vh) rotate(180deg) translateX(30px); }
+  100% { transform: translateY(110vh) rotate(360deg) translateX(-20px); opacity: 0; }
+}
+
+/* ── STAR PARTICLES (Midnight) ── */
+[data-theme="midnight"] .petals-wrap .petal {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--petal) 100%);
+}
