@@ -22,9 +22,9 @@ export default function Timer() {
   return (
     <div style={wrap}>
       <div style={numRow}>
-        <Unit value={days}        label="days" big />
+        <Unit value={days}         label="days" big />
         <Colon />
-        <Unit value={pad(hours)}  label="hours" />
+        <Unit value={pad(hours)}   label="hours" />
         <Colon />
         <Unit value={pad(minutes)} label="min" />
         <Colon />
@@ -38,16 +38,25 @@ function Unit({ value, label, big }) {
   return (
     <div style={{ textAlign: 'center', lineHeight: 1 }}>
       <div style={{
-        fontFamily: 'var(--font-body)',
-        fontWeight: 300,
-        fontSize: big ? 'clamp(2.2rem,6vw,3.6rem)' : 'clamp(2rem,5vw,3.2rem)',
+        fontFamily: "'Dancing Script', cursive",
+        fontWeight: 600,
+        fontSize: big ? 'clamp(2.6rem,7vw,4.2rem)' : 'clamp(2.2rem,5.5vw,3.6rem)',
         color: 'var(--accent)',
-        letterSpacing: '-0.02em',
+        letterSpacing: '0.01em',
         transition: 'color 0.3s',
+        lineHeight: 1,
       }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.62rem', color: 'var(--text2)', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: '0.2rem' }}>
+      <div style={{
+        fontSize: '0.58rem',
+        color: 'var(--text2)',
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        marginTop: '0.25rem',
+        fontFamily: 'var(--font-body)',
+        fontWeight: 300,
+      }}>
         {label}
       </div>
     </div>
@@ -56,20 +65,19 @@ function Unit({ value, label, big }) {
 
 function Colon() {
   return (
-    <div style={{ fontSize: 'clamp(1.6rem,4vw,2.8rem)', color: 'var(--accent2)', fontWeight: 300, lineHeight: 1, paddingBottom: '1rem', opacity: 0.6 }}>
+    <div style={{
+      fontFamily: "'Dancing Script', cursive",
+      fontWeight: 600,
+      fontSize: 'clamp(2rem,5vw,3.2rem)',
+      color: 'var(--accent2)',
+      lineHeight: 1,
+      paddingBottom: '1.1rem',
+      opacity: 0.55,
+    }}>
       :
     </div>
   )
 }
 
-const wrap = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}
-
-const numRow = {
-  display: 'flex',
-  alignItems: 'flex-end',
-  gap: 'clamp(0.4rem,2vw,1.2rem)',
-}
+const wrap = { display: 'flex', flexDirection: 'column', alignItems: 'center' }
+const numRow = { display: 'flex', alignItems: 'flex-end', gap: 'clamp(0.3rem,1.5vw,1rem)' }
