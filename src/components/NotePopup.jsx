@@ -48,16 +48,16 @@ function PinboardNote({ note, pinColor, onClose }) {
         <button onClick={onClose} style={closeBtn}>×</button>
 
         {/* Stage — envelope + paper overlap here */}
-        <div style={{ position: 'relative', height: 300, width: '100%' }}>
+        <div style={{ position: 'relative', height: 400, width: '100%' }}>
 
           {/* ── Paper note — slides up from inside envelope ── */}
           <div style={{
             position: 'absolute',
             left: '9%', right: '9%',
-            bottom: phase >= 2 ? 95 : 14,
+            bottom: phase >= 2 ? 195 : 14,
             zIndex: 2,
             opacity: phase >= 1 ? 1 : 0,
-            transition: 'bottom 0.6s cubic-bezier(0.34,1.08,0.64,1) 0.05s, opacity 0.3s 0.35s',
+            transition: 'bottom 0.65s cubic-bezier(0.34,1.08,0.64,1) 0.05s, opacity 0.3s 0.35s',
           }}>
             {/* Lined paper texture lines */}
             <div style={paperCard}>
