@@ -1,148 +1,127 @@
 import { useState, useMemo } from 'react'
+import NotePopup from './NotePopup.jsx'
 
-const MESSAGES = [
-  'You are the best thing that has ever happened to me.',
-  'Every time I see you, I fall in love all over again.',
-  'With you, every day is an adventure.',
-  'You make ordinary moments feel magical.',
-  'I love you more than words can say.',
-  'You are my sunshine on the cloudiest days.',
-  'Thank you for being you, always.',
-  'My heart is yours, completely.',
-  'You are the reason I smile.',
-  'Together is my favourite place to be.',
+const NOTES = [
+  "I love your smile, it makes me smile too hehe",
+  "I love when you take care of me like im your baby",
+  "I love the way you have always been my greatest supporter",
+  "I love when you get as excited as me in my wins (you are right as im typing this too hehe)",
+  "I love your hair",
+  "I love your body",
+  "I love how good of a mother you are going to be",
+  "I love the way you respect elders",
+  "I love the way you love and care about little kids",
+  "I love how you pretend to find my humor funny",
+  "I love how you catch my vocab within days and become a mini me",
+  "I love how you love god",
+  "I love the way you dream of marrying me and starting a life",
+  "I love that you love hiking and travelling too",
+  "I love how appreciative you are of everything i do",
+  "I love how you share things with me",
+  "I love how good of a dancer you are",
+  "I love your passion in cooking",
+  "I love the way you respect me and my family",
+  "I love the way you make love to me",
 ]
 
-const PIN_COLORS = ['#e53935', '#8e24aa', '#1e88e5', '#43a047', '#fb8c00']
+const PIN_COLORS = ['#e53935','#8e24aa','#1e88e5','#43a047','#fb8c00','#00acc1','#d81b60','#6d4c41']
+const ENV_COLORS = ['#fdf8f0','#fef0f4','#f0f4fe','#f0fef4','#fdf5ff','#fff8f0','#f5fff9','#f0f8ff']
 
-export default function EnvelopePinboard({ images }) {
-  const items = useMemo(() => images.map((src, i) => ({
-    src, id: i,
-    rotate: (Math.random() - 0.5) * 10,
+export default function EnvelopePinboard() {
+  const items = useMemo(() => NOTES.map((note, i) => ({
+    note, id: i,
+    rotate: (Math.random() - 0.5) * 11,
     pinColor: PIN_COLORS[i % PIN_COLORS.length],
-    msg: MESSAGES[i % MESSAGES.length],
-    type: i % 3 === 2 ? 'photo' : 'envelope',
-  })), [images])
+    envColor: ENV_COLORS[i % ENV_COLORS.length],
+  })), [])
 
-  const [open, setOpen] = useState(null)
+  const [popup, setPopup] = useState(null)
 
   return (
-    <div style={boardOuter}>
-      {/* Corkboard */}
-      <div style={corkBoard}>
-        {/* Board frame shadow */}
-        <div style={boardInner}>
+    <div style={outer}>
+      <div style={board}>
+        <div style={grid}>
           {items.map(item => (
-            <div key={item.id} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
-              {/* Push-pin SVG */}
+            <div key={item.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', position:'relative', paddingTop:'10px' }}>
               <PushPin color={item.pinColor} />
-
               <div
-                onClick={() => setOpen(open === item.id ? null : item.id)}
+                onClick={() => setPopup(item)}
                 style={{
                   ...card,
-                  transform: `rotate(${item.rotate}deg) ${open === item.id ? 'scale(1.05)' : ''}`,
-                  boxShadow: open === item.id
-                    ? '4px 10px 30px rgba(0,0,0,0.35), 2px 4px 8px rgba(0,0,0,0.2)'
-                    : '3px 6px 18px rgba(0,0,0,0.25), 1px 2px 4px rgba(0,0,0,0.15)',
-                  zIndex: open === item.id ? 50 : 1,
-                  marginTop: '10px',
+                  background: item.envColor,
+                  transform: `rotate(${item.rotate}deg)`,
+                  boxShadow: '3px 6px 18px rgba(0,0,0,0.28), 1px 2px 4px rgba(0,0,0,0.15)',
                 }}
               >
-                {item.type === 'photo' ? (
-                  <img src={item.src} alt="" style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block', borderRadius: '2px 2px 0 0' }} />
-                ) : (
-                  <Envelope src={item.src} msg={item.msg} isOpen={open === item.id} />
-                )}
-                {item.type === 'photo' && (
-                  <p style={{ padding: '0.55rem 0.65rem', fontSize: '0.72rem', fontStyle: 'italic', color: '#555', lineHeight: 1.4 }}>
-                    {item.msg}
-                  </p>
-                )}
+                <EnvelopeBody color={item.pinColor} />
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
-  )
-}
 
-function Envelope({ src, msg, isOpen }) {
-  return (
-    <div style={{ width: '100%', position: 'relative', overflow: 'hidden', background: '#fdf8f0', borderRadius: '3px', minHeight: '140px' }}>
-      {/* Envelope body */}
-      <svg viewBox="0 0 180 120" width="100%" style={{ display: 'block' }}>
-        <rect x="0" y="0" width="180" height="120" rx="4" fill="#fdf8f0" stroke="#e0cfa0" strokeWidth="1.5" />
-        {/* Bottom V flap */}
-        <path d="M0 120 L90 65 L180 120Z" fill="#f5ecd0" stroke="#e0cfa0" strokeWidth="1" />
-        {/* Side triangles */}
-        <path d="M0 0 L90 65 L0 120Z" fill="#ede4c8" />
-        <path d="M180 0 L90 65 L180 120Z" fill="#ede4c8" />
-        {/* Top flap — open/closed */}
-        <path
-          d={isOpen ? "M0 0 L90 50 L180 0Z" : "M0 0 L90 65 L180 0Z"}
-          fill="#f8f0dc"
-          stroke="#e0cfa0"
-          strokeWidth="1"
-          style={{ transition: 'all 0.4s ease', transformOrigin: 'top', transform: isOpen ? 'rotateX(-180deg)' : 'rotateX(0deg)' }}
+      {popup && (
+        <NotePopup
+          type="pinboard"
+          note={popup.note}
+          onClose={() => setPopup(null)}
         />
-        {/* Wax seal */}
-        <circle cx="90" cy="70" r="12" fill="#c4507a" opacity="0.85" />
-        <path d="M84 70 L90 64 L96 70 L90 76Z" fill="rgba(255,255,255,0.6)" />
-      </svg>
-
-      {/* Revealed content */}
-      {isOpen && (
-        <div style={{ padding: '0.6rem 0.8rem 0.8rem', textAlign: 'center' }}>
-          <img src={src} alt="" style={{ width: '100%', height: '90px', objectFit: 'cover', borderRadius: '3px', marginBottom: '0.5rem' }} />
-          <p style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#6b4a2a', lineHeight: 1.5 }}>{msg}</p>
-        </div>
       )}
     </div>
   )
 }
 
-function PushPin({ color }) {
+function EnvelopeBody({ color }) {
   return (
-    <svg width="20" height="32" viewBox="0 0 20 32" style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))' }}>
-      {/* Pin head */}
-      <circle cx="10" cy="8" r="8" fill={color} />
-      <circle cx="7" cy="5" r="2.5" fill="rgba(255,255,255,0.4)" />
-      {/* Pin shaft */}
-      <rect x="9" y="14" width="2" height="16" rx="1" fill="#888" />
-      <polygon points="8,28 12,28 10,32" fill="#666" />
+    <svg viewBox="0 0 140 90" width="100%" style={{ display:'block', borderRadius:'3px' }}>
+      <rect x="0" y="0" width="140" height="90" rx="4" fill="inherit"/>
+      {/* sides */}
+      <path d="M0 0 L70 55 L0 90Z" fill="rgba(0,0,0,0.05)"/>
+      <path d="M140 0 L70 55 L140 90Z" fill="rgba(0,0,0,0.05)"/>
+      {/* bottom V */}
+      <path d="M0 90 L70 50 L140 90Z" fill="rgba(0,0,0,0.07)"/>
+      {/* top flap */}
+      <path d="M0 0 L70 58 L140 0Z" fill="rgba(0,0,0,0.04)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5"/>
+      {/* wax seal */}
+      <circle cx="70" cy="60" r="10" fill={color} opacity="0.85"/>
+      <path d="M65 60 L70 55 L75 60 L70 65Z" fill="rgba(255,255,255,0.5)"/>
     </svg>
   )
 }
 
-const boardOuter = {
-  padding: '2rem max(1.5rem, 4vw)',
-  position: 'relative',
-  zIndex: 1,
+function PushPin({ color }) {
+  return (
+    <svg width="18" height="30" viewBox="0 0 18 30"
+      style={{ position:'absolute', top:'-2px', left:'50%', transform:'translateX(-50%)', zIndex:10,
+               filter:'drop-shadow(0 2px 3px rgba(0,0,0,0.45))' }}>
+      <circle cx="9" cy="7" r="7" fill={color}/>
+      <circle cx="6.5" cy="4.5" r="2" fill="rgba(255,255,255,0.35)"/>
+      <rect x="8" y="13" width="2" height="15" rx="1" fill="#777"/>
+      <polygon points="7,27 11,27 9,30" fill="#555"/>
+    </svg>
+  )
 }
 
-const corkBoard = {
+const outer = { padding:'1.5rem max(1rem,3vw) 4rem', position:'relative', zIndex:1 }
+
+const board = {
   background: 'var(--cork-texture)',
   backgroundColor: 'var(--cork)',
-  borderRadius: '12px',
-  padding: '2rem',
-  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3), 0 8px 40px rgba(0,0,0,0.3), 0 0 0 8px #8B6914, 0 0 0 10px #6B4F10',
-  position: 'relative',
+  borderRadius: '10px',
+  padding: 'clamp(1rem,3vw,1.8rem)',
+  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3), 0 8px 40px rgba(0,0,0,0.3), 0 0 0 6px #8B6914, 0 0 0 8px #6B4F10',
 }
 
-const boardInner = {
+const grid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-  gap: '2.5rem 2rem',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+  gap: 'clamp(1.5rem,4vw,2.5rem) clamp(1rem,3vw,2rem)',
 }
 
 const card = {
-  background: '#fff',
-  borderRadius: '3px',
   width: '100%',
   cursor: 'pointer',
-  transition: 'transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s',
+  borderRadius: '4px',
+  transition: 'transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s',
   willChange: 'transform',
-  position: 'relative',
 }

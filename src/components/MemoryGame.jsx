@@ -1,4 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
+import NotePopup from './NotePopup.jsx'
+
+// 10 notes revealed when each pair is matched
+const GAME_NOTES = [
+  "If I were to close my eyes forever, I would choose your eyes as my last view.",
+  "Among many perfections, you have problems few... though it cannot stop my heart to gravitate towards you.",
+  "त्यो महा कस्तो महा, जुन मा मिठास छैन...\nत्यो महा कस्तो महा, जुन मा मिठास छैन...\nत्यो धर्ती कस्तो धर्ती, जुन मा तिमी छैन।",
+  "I would walk a million miles just to see you smile.",
+  "सुन्दर त्यो साँझ, घाम को किरण ले सजाएको...\nमखमली तिम्रो हासो ले, सुन्दरता बढाइदेको।",
+  "जति बाधा आए पनि, तिमी संगै बाँच्न पाउँ...\nयो जुनि मात्र होइन, ७ जुनि तिमी संगै बिताउन पाउँ।",
+  "तिम्रो माया को सागर हो म, तिमी मेरो किनारा हो...\nजति टाढा भए पनि, मेरो उद्देश्य तिमीलाई भेट्ने हो।",
+  "चन्द्रमाको किरण संगै, तिम्रो याद झुल्किन्छ...\nमेरो मनको भित्र, तिम्रो नाम धड्कन्छ।",
+  "My eyes long to see you, my arms long to hold you, and I long to spend my life with you.",
+  "The greatest flex in my life? That's you.",
+]
 
 function shuffle(arr) {
   const a = [...arr]
@@ -9,96 +24,115 @@ function shuffle(arr) {
   return a
 }
 
+// Detect if note uses Devanagari
+function isDevanagari(text) {
+  return /[ऀ-ॿ]/.test(text)
+}
+
 export default function MemoryGame({ images }) {
-  const subset = images.slice(0, 6)
-  const [cards, setCards]   = useState([])
+  const [cards, setCards]     = useState([])
   const [flipped, setFlipped] = useState([])
-  const [matched, setMatched] = useState([])
-  const [moves, setMoves]   = useState(0)
-  const [win, setWin]       = useState(false)
+  const [matched, setMatched] = useState(new Set())
+  const [moves, setMoves]     = useState(0)
+  const [popup, setPopup]     = useState(null)   // { note, image }
+  const [win, setWin]         = useState(false)
+  const [locked, setLocked]   = useState(false)
 
   const init = useCallback(() => {
-    const deck = shuffle([...subset, ...subset].map((src, i) => ({ src, id: i, pairId: src })))
+    const deck = shuffle(
+      images.flatMap((src, i) => [
+        { src, pairId: i, id: `${i}-a` },
+        { src, pairId: i, id: `${i}-b` },
+      ])
+    )
     setCards(deck)
     setFlipped([])
-    setMatched([])
+    setMatched(new Set())
     setMoves(0)
     setWin(false)
-  }, [subset.join()])
+    setLocked(false)
+    setPopup(null)
+  }, [images.join()])
 
   useEffect(() => { init() }, [init])
 
   useEffect(() => {
-    if (flipped.length === 2) {
-      setMoves(m => m + 1)
-      const [a, b] = flipped
-      if (cards[a].pairId === cards[b].pairId) {
-        setMatched(m => {
-          const next = [...m, a, b]
-          if (next.length === cards.length) setWin(true)
+    if (flipped.length !== 2) return
+    setLocked(true)
+    setMoves(m => m + 1)
+    const [a, b] = flipped
+    if (cards[a].pairId === cards[b].pairId) {
+      const pairId = cards[a].pairId
+      setTimeout(() => {
+        setMatched(prev => {
+          const next = new Set(prev)
+          next.add(cards[a].id)
+          next.add(cards[b].id)
+          if (next.size === cards.length) setWin(true)
           return next
         })
         setFlipped([])
-      } else {
-        const t = setTimeout(() => setFlipped([]), 1000)
-        return () => clearTimeout(t)
-      }
+        setLocked(false)
+        // show popup for this pair
+        setPopup({ note: GAME_NOTES[pairId % GAME_NOTES.length], image: cards[a].src })
+      }, 400)
+    } else {
+      setTimeout(() => { setFlipped([]); setLocked(false) }, 900)
     }
-  }, [flipped, cards])
+  }, [flipped])
 
   const flip = (i) => {
+    if (locked) return
     if (flipped.length === 2) return
     if (flipped.includes(i)) return
-    if (matched.includes(i)) return
+    if (matched.has(cards[i].id)) return
     setFlipped(f => [...f, i])
   }
 
-  const isVisible = (i) => flipped.includes(i) || matched.includes(i)
+  const isVisible = (i) => flipped.includes(i) || matched.has(cards[i]?.id)
 
   return (
-    <div style={{ padding: '1.5rem max(1.5rem,4vw) 3rem', position: 'relative', zIndex: 1 }}>
+    <div style={{ padding:'1rem max(1rem,3vw) 5rem', position:'relative', zIndex:1 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div>
-          <h2 className="heading" style={{ fontSize: '1.8rem', color: 'var(--accent)', marginBottom: '0.15rem' }}>Memory Matching</h2>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text2)' }}>Find all the matching pairs — {moves} moves</p>
-        </div>
-        <button className="btn" onClick={init} style={{ padding: '0.45rem 1.2rem' }}>Restart</button>
+      <div style={{ textAlign:'center', marginBottom:'1.2rem' }}>
+        <h2 className="heading" style={{ fontSize:'clamp(1.6rem,5vw,2.4rem)', color:'var(--accent)' }}>
+          Memory Matching
+        </h2>
+        <p style={{ fontSize:'0.8rem', color:'var(--text2)', marginTop:'0.2rem' }}>
+          Find matching pairs to see a note &nbsp;·&nbsp; {moves} moves
+        </p>
       </div>
 
       {win && (
-        <div style={winBanner}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--accent)' }}>You did it!</span>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text2)', marginTop: '0.3rem' }}>Completed in {moves} moves ♡</p>
-          <button className="btn" onClick={init} style={{ marginTop: '0.8rem' }}>Play Again</button>
+        <div style={winBox}>
+          <p style={{ fontFamily:'var(--font-heading)', fontSize:'2rem', color:'var(--accent)' }}>You did it! ♡</p>
+          <p style={{ fontSize:'0.82rem', color:'var(--text2)', marginTop:'0.3rem' }}>Completed in {moves} moves</p>
+          <button className="btn" onClick={init} style={{ marginTop:'0.8rem', fontSize:'0.85rem', padding:'0.45rem 1.2rem' }}>Play Again</button>
         </div>
       )}
 
+      {/* 4×5 grid */}
       <div style={grid}>
         {cards.map((card, i) => (
-          <div key={card.id} onClick={() => flip(i)} style={{ perspective: '600px', cursor: 'pointer' }}>
+          <div key={card.id} onClick={() => flip(i)} style={{ perspective:'700px', cursor: matched.has(card.id) ? 'default' : 'pointer' }}>
             <div style={{
-              ...cardInner,
+              ...inner,
               transform: isVisible(i) ? 'rotateY(180deg)' : 'rotateY(0deg)',
             }}>
               {/* Back */}
               <div style={{ ...face, ...back }}>
-                <svg width="36" height="36" viewBox="0 0 36 36">
-                  <path d="M18 30 C18 30 4 20 4 11 C4 6 7.5 3 11 3 C14 3 16.5 5 18 7.5 C19.5 5 22 3 25 3 C28.5 3 32 6 32 11 C32 20 18 30 18 30Z" fill="var(--accent)" opacity="0.5" />
+                <svg width="28" height="26" viewBox="0 0 28 26">
+                  <path d="M14 23C14 23 2 14 2 7C2 3 5 1 8 1C11 1 13 3 14 5.5C15 3 17 1 20 1C23 1 26 3 26 7C26 14 14 23 14 23Z" fill="var(--accent)" opacity="0.45"/>
                 </svg>
               </div>
               {/* Front */}
               <div style={{ ...face, ...front }}>
-                <img
-                  src={card.src}
-                  alt=""
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                />
-                {matched.includes(i) && (
-                  <div style={matchedOverlay}>
-                    <svg width="28" height="28" viewBox="0 0 28 28">
-                      <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.85)" />
-                      <path d="M7 14 L12 19 L21 9" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <img src={card.src} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'8px', display:'block' }}/>
+                {matched.has(card.id) && (
+                  <div style={matchOverlay}>
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.88)"/>
+                      <path d="M6 12L10 16L18 8" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                     </svg>
                   </div>
                 )}
@@ -107,65 +141,68 @@ export default function MemoryGame({ images }) {
           </div>
         ))}
       </div>
+
+      {popup && (
+        <NotePopup
+          type="game"
+          note={popup.note}
+          image={popup.image}
+          onClose={() => setPopup(null)}
+        />
+      )}
+
+      {/* Override note font for Devanagari notes in popup */}
+      <style>{`
+        .popup-box p[data-dev="true"] {
+          font-family: var(--font-dev) !important;
+          white-space: pre-line;
+          font-size: 1rem !important;
+        }
+      `}</style>
     </div>
   )
 }
 
 const grid = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-  gap: '1rem',
-  maxWidth: '900px',
+  gridTemplateColumns: 'repeat(4, 1fr)',
+  gap: 'clamp(0.4rem,2vw,0.75rem)',
+  maxWidth: '600px',
   margin: '0 auto',
 }
 
-const cardInner = {
-  position: 'relative',
-  width: '100%',
-  paddingTop: '100%',
-  transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
-  transformStyle: 'preserve-3d',
+const inner = {
+  position:'relative', width:'100%', paddingTop:'100%',
+  transition:'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+  transformStyle:'preserve-3d',
 }
 
 const face = {
-  position: 'absolute',
-  inset: 0,
-  borderRadius: '8px',
-  backfaceVisibility: 'hidden',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  position:'absolute', inset:0, borderRadius:'8px',
+  backfaceVisibility:'hidden',
+  display:'flex', alignItems:'center', justifyContent:'center',
 }
 
 const back = {
-  background: 'var(--surface)',
-  border: '2px solid var(--accent2)',
-  boxShadow: '0 4px 14px var(--shadow)',
+  background:'var(--surface)',
+  border:'1.5px solid var(--accent2)',
+  boxShadow:'0 3px 12px var(--shadow)',
 }
 
 const front = {
-  background: 'var(--bg2)',
-  transform: 'rotateY(180deg)',
-  overflow: 'hidden',
-  boxShadow: '0 4px 14px var(--shadow)',
+  transform:'rotateY(180deg)',
+  overflow:'hidden',
+  boxShadow:'0 3px 12px var(--shadow)',
 }
 
-const matchedOverlay = {
-  position: 'absolute',
-  inset: 0,
-  background: 'rgba(0,0,0,0.15)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '8px',
+const matchOverlay = {
+  position:'absolute', inset:0, background:'rgba(0,0,0,0.18)',
+  display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px',
 }
 
-const winBanner = {
-  textAlign: 'center',
-  background: 'var(--surface)',
-  border: '2px solid var(--accent2)',
-  borderRadius: '12px',
-  padding: '1.5rem',
-  marginBottom: '1.5rem',
-  boxShadow: '0 6px 24px var(--shadow)',
+const winBox = {
+  textAlign:'center', background:'var(--surface)',
+  border:'1.5px solid var(--accent2)', borderRadius:'14px',
+  padding:'1.4rem', marginBottom:'1.2rem',
+  boxShadow:'0 6px 24px var(--shadow)',
 }
